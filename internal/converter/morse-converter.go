@@ -11,8 +11,8 @@ import (
 )
 
 // Replace unknown/unexpected chars in text/morse with replacement character
-const usePlaceholderForTextOutput bool = true   // Enable because txt is utf-8
-const usePlaceholderForMorseOutput bool = false // Disabled to ensure valid morse code
+const usePlaceholderForTextOutput bool = true
+const usePlaceholderForMorseOutput bool = true
 
 // Struct that handles the conversion
 type MorseConverter struct {
