@@ -60,6 +60,21 @@ func main() {
 		// Use standard output if no file specified
 		outFile = os.Stdout
 	} else {
+		// Check output file extension
+		var outFileBasename string = filepath.Base(cfg.outputFile)
+		var validOutExtension bool = strings.HasSuffix(outFileBasename, ".txt") || strings.HasSuffix(outFileBasename, ".morse")
+		if !validOutExtension {
+			if strings.Contains(outFileBasename, ".") {
+				// Some extension other than txt or morse is already defined
+				fmt.Fprintf(os.Stderr, "Error: invalid or missing extension for output file '%s'\n", cfg.outputFile)
+				os.Exit(1)
+			} else if isMorseToText {
+				// Set output extension to inverse of input extension
+				cfg.outputFile = cfg.outputFile + ".txt"
+			} else {
+				cfg.outputFile = cfg.outputFile + ".morse"
+			}
+		}
 		// Use specified output file
 		// os.Create truncate existing files
 		var err error
