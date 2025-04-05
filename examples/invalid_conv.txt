@@ -1,0 +1,3 @@
+H€llo World!
+你好 世界!
+invalid Char: ╚
