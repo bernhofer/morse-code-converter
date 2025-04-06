@@ -101,7 +101,7 @@ func main() {
 		fmt.Println("Conversion from morse to text:")
 		convErr = morseConverter.ConvertMorseToText()
 	} else {
-		fmt.Println("Conversion from test to morse:")
+		fmt.Println("Conversion from text to morse:")
 		convErr = morseConverter.ConvertTextToMorse()
 	}
 
