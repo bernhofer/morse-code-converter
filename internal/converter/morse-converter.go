@@ -28,7 +28,7 @@ func NewMorseConverter(input io.Reader, output io.Writer) *MorseConverter {
 	}
 }
 
-// ConvertTextToMorse reads UTF-8 text from the input and writes Morse code to the output.
+// ConvertTextToMorse reads UTF-8 text from the input and writes Morse code to the output
 func (c *MorseConverter) ConvertTextToMorse() error {
 	// Create reader & writer
 	reader := bufio.NewReader(c.Input)
@@ -40,6 +40,7 @@ func (c *MorseConverter) ConvertTextToMorse() error {
 	// Track beginning of char sequence to avoid leading space
 	firstChar := true
 
+	// Iterate input file runes until EOF
 	for {
 		r, _, err := reader.ReadRune()
 		if err != nil {
@@ -74,8 +75,6 @@ func (c *MorseConverter) ConvertTextToMorse() error {
 			firstChar = false
 		} else {
 			// Handle unsupported characters
-			log.Printf("Warning: skipping unsupported character: '%c' (U+%04X)\n", r, r)
-			// Optionally write a placeholder - uncomment if desired
 			if usePlaceholderForMorseOutput {
 				if !firstChar {
 					_, err = writer.WriteString(" ")
@@ -83,11 +82,14 @@ func (c *MorseConverter) ConvertTextToMorse() error {
 						return fmt.Errorf("error writing separator for placeholder: %w", err)
 					}
 				}
+				log.Printf("Warning: replacing unsupported character: '%c' (U+%04X)\n", r, r)
 				_, err = writer.WriteRune(mappings.UnknownMorse) // e.g., "?"
 				if err != nil {
 					return fmt.Errorf("error writing placeholder morse: %w", err)
 				}
 				firstChar = false
+			} else {
+				log.Printf("Warning: skipping unsupported character: '%c' (U+%04X)\n", r, r)
 			}
 		}
 	}
@@ -98,11 +100,10 @@ func (c *MorseConverter) ConvertTextToMorse() error {
 		// Log error, but don't fail the whole process just for the final newline
 		log.Printf("Warning: could not write final newline: %v", err)
 	}
-
 	return nil
 }
 
-// ConvertMorseToText reads Morse code from the input and writes text to the output.
+// ConvertMorseToText reads Morse code from the input and writes text to the output
 func (c *MorseConverter) ConvertMorseToText() error {
 	// Use scanner to read space-separated morse sequence
 	scanner := bufio.NewScanner(c.Input)
@@ -112,6 +113,7 @@ func (c *MorseConverter) ConvertMorseToText() error {
 	writer := bufio.NewWriter(c.Output)
 	defer writer.Flush() // Ensure buffer is flushed at the end
 
+	// Iterate over input file using scanner
 	for scanner.Scan() {
 		morseWord := scanner.Text()
 
@@ -135,20 +137,21 @@ func (c *MorseConverter) ConvertMorseToText() error {
 					return fmt.Errorf("error writing character for '%s': %w", morseWord, err)
 				}
 			} else {
+				// Handle unrecognized Morse sequence
 				if usePlaceholderForTextOutput {
-					// Handle unrecognized Morse sequence
-					log.Printf("Warning: Replacing unrecognized morse sequence: '%s'\n", morseWord)
+					log.Printf("Warning: replacing unrecognized morse sequence: '%s'\n", morseWord)
 					_, err := writer.WriteRune(mappings.UnknownChar) // Write '?'
 					if err != nil {
 						return fmt.Errorf("error writing placeholder char: %w", err)
 					}
 				} else {
-					log.Printf("Warning: Skipping unrecognized morse sequence: '%s'\n", morseWord)
+					log.Printf("Warning: skipping unrecognized morse sequence: '%s'\n", morseWord)
 				}
 			}
 		}
 	}
 
+	// Handle error from scanner
 	if err := scanner.Err(); err != nil {
 		return fmt.Errorf("error scanning input: %w", err)
 	}
@@ -158,6 +161,5 @@ func (c *MorseConverter) ConvertMorseToText() error {
 	if err != nil {
 		log.Printf("Warning: could not write final newline: %v", err)
 	}
-
 	return nil
 }

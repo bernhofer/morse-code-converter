@@ -1,5 +1,10 @@
 package mappings
 
+import (
+	"fmt"
+	"os"
+)
+
 // Based on International Morse Code standard
 // https://en.wikipedia.org/wiki/Morse_code#Letters,_numbers,_punctuation,_prosigns_for_Morse_code_and_non-Latin_variants
 // Public map
@@ -35,11 +40,19 @@ const UnknownMorse rune = '\uFFFD'
 
 // init generates the reverse map (morseToText) from TextToMorse
 func init() {
-	for r, s := range TextToMorse {
-		// Ensure we don't overwrite existing entries if Morse codes were accidentally duplicated
-		// (though the standard map shouldn't have duplicates)
-		if _, exists := MorseToText[s]; !exists {
-			MorseToText[s] = r
+	for textRune, morseSequence := range TextToMorse {
+		if _, exists := MorseToText[morseSequence]; !exists {
+			// Write entry to inverse map
+			MorseToText[morseSequence] = textRune
+		} else {
+			// Found duplicate definition for Morse sequence
+			fmt.Fprintf(
+				os.Stderr,
+				"Error: found duplicate definiton for Morse sequence \"%s\" for rune '%s' and '%s' in mapping\n",
+				morseSequence,
+				string(textRune),
+				string(MorseToText[morseSequence]))
+			os.Exit(1)
 		}
 	}
 }

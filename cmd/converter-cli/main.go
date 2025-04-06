@@ -12,12 +12,14 @@ import (
 	"github.com/bernhofer/morse-code-converter/internal/converter"
 )
 
+// Valid file extensions
 const (
 	morseExtension = ".morse"
 	textExtension  = ".txt"
 )
 
-type config struct {
+// User userConfig for cli args
+type userConfig struct {
 	inputFile  string
 	outputFile string
 }
@@ -29,7 +31,6 @@ func main() {
 	cfg, err := parseFlags()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error occured when parsing args: %v\n", err)
-		printUsage()
 		os.Exit(1)
 	}
 
@@ -116,32 +117,37 @@ func main() {
 }
 
 // Parses command line arguments
-func parseFlags() (config, error) {
-	var cfg config
+func parseFlags() (userConfig, error) {
+	var cfg userConfig
 	flag.StringVar(&cfg.inputFile, "input", "", "Path to the input file (.txt or .morse) (required)")
-	flag.StringVar(&cfg.outputFile, "output", "", "Path to the output file (optional, defaults to stdout)")
+	flag.StringVar(&cfg.inputFile, "i", "", "Alias for -input")
 
-	flag.Usage = printUsage // Set custom usage function
+	flag.StringVar(&cfg.outputFile, "output", "", "Path to the output file (optional, defaults to stdout)")
+	flag.StringVar(&cfg.outputFile, "o", "", "Alias for -output")
+
+	// Set custom printUsage() function
+	flag.Usage = printUsage
 
 	flag.Parse()
 
 	// Validate required flags
 	if cfg.inputFile == "" {
-		fmt.Fprintln(os.Stderr, "Error: Input file path is required.")
-		return config{}, fmt.Errorf("missing input file")
+		printUsage()
+		return userConfig{}, fmt.Errorf("missing input file")
 	}
 
-	// Check if input exists
+	// Check if input file exists
 	if _, err := os.Stat(cfg.inputFile); os.IsNotExist(err) {
-		return config{}, fmt.Errorf("input file '%s' not found", cfg.inputFile)
+		return userConfig{}, fmt.Errorf("input file '%s' not found", cfg.inputFile)
 	} else if err != nil {
-		return config{}, fmt.Errorf("error checking input file '%s': %w", cfg.inputFile, err)
+		return userConfig{}, fmt.Errorf("error checking input file '%s': %w", cfg.inputFile, err)
 	}
 
-	// Check for additional arguments
+	// Check for additional positional flags
+	// Undefined flags (e.g. -a xyz) are already captured by flag.Parse()
 	if len(flag.Args()) > 0 {
-		fmt.Fprintf(os.Stderr, "Error: Unexpected arguments provided: %v\n", flag.Args())
-		return config{}, fmt.Errorf("unexpected arguments")
+		printUsage()
+		return userConfig{}, fmt.Errorf("unexpected arguments")
 	}
 
 	return cfg, nil
@@ -149,12 +155,14 @@ func parseFlags() (config, error) {
 
 // Print help
 func printUsage() {
-	fmt.Fprintf(os.Stderr, "\nUsage: %s -input <input_file> [-output <output_file>]\n", filepath.Base(os.Args[0]))
+	fmt.Fprintln(os.Stderr, "\n############## morse-code-converter help ###############")
+	fmt.Fprintf(os.Stderr, "Usage: %s [options]\n", filepath.Base(os.Args[0]))
 	fmt.Fprintln(os.Stderr, "\nConverts text (.txt) to Morse code (.morse) or vice versa.")
 	fmt.Fprintln(os.Stderr, "The conversion direction is determined by the input file extension.")
-	fmt.Fprintln(os.Stderr, "\nArguments:")
+	fmt.Fprintln(os.Stderr, "\nOptions:")
 	flag.PrintDefaults()
 	fmt.Fprintln(os.Stderr, "\nExamples:")
 	fmt.Fprintf(os.Stderr, "  %s -input message.txt -output message.morse\n", filepath.Base(os.Args[0]))
-	fmt.Fprintf(os.Stderr, "  %s -input code.morse\n", filepath.Base(os.Args[0]))
+	fmt.Fprintf(os.Stderr, "  %s -i code.morse\n", filepath.Base(os.Args[0]))
+	fmt.Fprintln(os.Stderr, "########################################################")
 }
