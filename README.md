@@ -67,7 +67,7 @@ Convert Morse code to text and print to stdout:
 ./morseconverter -input examples/valid_conv.morse
 ```
 
-Convert text to Morse code and write it to a new file `output.morse`:
+Convert text to Morse code and write it to a new file `output.morse`. The tool will truncate `output.morse` if it exists:
 ```bash
 ./morseconverter -input examples/valid_conv.txt  -output ./output
 ```
